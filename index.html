@@ -201,7 +201,10 @@ async function lookup() {
     const { type: masterType, label: masterLabel } = getMasterStatus(masterStatus);
 
     if (masterType !== 'instock') {
-      showResult(id, masterType, masterLabel, '', '', null, null);
+      // Check if also in חפיפה — if so, show delete option
+      const storageMatchSold = storageRows.slice(1).find(r => r[1] && r[1].trim() === id);
+      const isSoldAndWash = storageMatchSold && (storageMatchSold[2] || '').trim() === 'חפיפה';
+      showResult(id, masterType, masterLabel, '', '', null, null, isSoldAndWash);
       return;
     }
 
@@ -241,7 +244,7 @@ async function lookup() {
   }
 }
 
-function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLoc) {
+function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLoc, soldAndWash) {
   const cls = `c-${type}`;
   const badges = {
     none: 'תקין · אין שינוי',
@@ -272,7 +275,16 @@ function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLo
   }
   html += `<div class="detail-row"><span class="dk">מזהה פאה</span><span class="dv">${id}</span></div>`;
 
-  if (zohoVal) {
+  if (soldAndWash) {
+    html += `
+      <button class="btn-confirm display" id="confirmBtn" onclick="confirmAction('${id}','פאה בתצוגה','מחיקת סטטוס חפיפה','${encodeURIComponent(desc)}','')">מחקי סטטוס חפיפה</button>
+      <button class="btn-skip" onclick="reset()">השאירי כמו שזה</button>`;
+  } else if (type === 'wash') {
+    html += `
+      <button class="btn-confirm display" id="confirmBtn" onclick="confirmAction('${id}','פאה בתצוגה','העברה לתצוגה','${encodeURIComponent(desc)}','')">✓ העברי לתצוגה</button>
+      <button class="btn-confirm" style="margin-top:8px;" onclick="confirmAction('${id}','פאה במגירה','העברה לאחסון','${encodeURIComponent(desc)}','')">✓ העברי לאחסון</button>
+      <button class="btn-skip" onclick="reset()">השאירי כמו שזה</button>`;
+  } else if (zohoVal) {
     html += `
       <button class="btn-confirm ${confirmCls}" id="confirmBtn" onclick="confirmAction('${id}','${zohoVal}','${mainText}','${encodeURIComponent(desc)}','${encodeURIComponent(helperLoc || '')}')">✓ אישור — ביצעתי את הפעולה</button>
       <button class="btn-skip" onclick="reset()">השאירי כמו שזה</button>`;
