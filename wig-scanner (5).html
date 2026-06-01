@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="סורק פאות">
+<title>סורק פאות</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #F5F4F0; --surface: #FFFFFF; --border: rgba(0,0,0,0.10);
+    --text-primary: #1A1A18; --text-secondary: #6B6B65; --text-hint: #A8A8A0;
+    --green-bg: #EAF3DE; --green-text: #27500A; --green-border: #97C459;
+    --blue-bg: #E6F1FB; --blue-text: #0C447C; --blue-border: #85B7EB;
+    --amber-bg: #FAEEDA; --amber-text: #633806; --amber-border: #EF9F27;
+    --red-bg: #FDECEA; --red-text: #7A1F1F; --red-border: #E57373;
+    --purple-bg: #F3EEFB; --purple-text: #4A1D7A; --purple-border: #B39DDB;
+    --grey-bg: #F0F0EE; --grey-text: #444442; --grey-border: #AAAAAA;
+    --radius: 16px; --radius-sm: 10px;
+  }
+  html, body { height: 100%; background: var(--bg); font-family: 'Heebo', sans-serif; color: var(--text-primary); -webkit-font-smoothing: antialiased; }
+  .page { min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem 3rem; }
+  .header { text-align: center; margin-bottom: 2rem; }
+  .header h1 { font-size: 22px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .header p { font-size: 13px; color: var(--text-hint); }
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 1.5rem; width: 100%; max-width: 440px; margin-bottom: 1rem; }
+  .field-label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; letter-spacing: 0.04em; }
+  .input-row { display: flex; gap: 8px; }
+  .input-row input {
+    flex: 1; font-family: 'Heebo', sans-serif; font-size: 20px; font-weight: 500;
+    padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); color: var(--text-primary); -webkit-appearance: none; appearance: none; outline: none;
+  }
+  .input-row input:focus { border-color: rgba(0,0,0,0.35); }
+  .input-row input::placeholder { color: var(--text-hint); font-size: 15px; font-weight: 400; }
+  .btn { padding: 12px 16px; background: var(--text-primary); color: #fff; border: none; border-radius: var(--radius-sm); font-family: 'Heebo', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+  .btn:active { opacity: 0.8; }
+  .hint { font-size: 12px; color: var(--text-hint); text-align: center; margin-top: 8px; }
+
+  .result-card { width: 100%; max-width: 440px; border-radius: var(--radius); padding: 1.5rem; border: 1px solid; animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .c-none     { background: var(--green-bg);  border-color: var(--green-border); }
+  .c-action   { background: var(--amber-bg);  border-color: var(--amber-border); }
+  .c-sold     { background: var(--red-bg);    border-color: var(--red-border); }
+  .c-order    { background: var(--purple-bg); border-color: var(--purple-border); }
+  .c-wash     { background: var(--grey-bg);   border-color: var(--grey-border); }
+  .c-storage  { background: var(--blue-bg);   border-color: var(--blue-border); }
+  .c-error    { background: #fff0f0; border-color: #f09595; }
+  .c-success  { background: var(--green-bg);  border-color: var(--green-border); }
+
+  .status-badge { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
+  .c-none    .status-badge { background: var(--green-border);  color: var(--green-text); }
+  .c-action  .status-badge { background: var(--amber-border);  color: var(--amber-text); }
+  .c-sold    .status-badge { background: var(--red-border);    color: var(--red-text); }
+  .c-order   .status-badge { background: var(--purple-border); color: var(--purple-text); }
+  .c-wash    .status-badge { background: var(--grey-border);   color: var(--grey-text); }
+  .c-storage .status-badge { background: var(--blue-border);   color: var(--blue-text); }
+  .c-error   .status-badge { background: #f09595; color: #501313; }
+  .c-success .status-badge { background: var(--green-border);  color: var(--green-text); }
+
+  .result-action { font-size: 24px; font-weight: 700; line-height: 1.2; margin-bottom: 14px; }
+  .c-none    .result-action { color: var(--green-text); }
+  .c-action  .result-action { color: var(--amber-text); }
+  .c-sold    .result-action { color: var(--red-text); }
+  .c-order   .result-action { color: var(--purple-text); }
+  .c-wash    .result-action { color: var(--grey-text); }
+  .c-storage .result-action { color: var(--blue-text); }
+  .c-error   .result-action { color: #A32D2D; }
+  .c-success .result-action { color: var(--green-text); }
+
+  .detail-row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 7px 0; }
+  .detail-row + .detail-row { border-top: 0.5px solid rgba(0,0,0,0.08); }
+  .dk { font-size: 13px; color: rgba(0,0,0,0.45); white-space: nowrap; }
+  .dv { font-size: 13px; font-weight: 500; color: var(--text-primary); text-align: left; word-break: break-word; }
+
+  .btn-confirm { width: 100%; margin-top: 14px; padding: 14px; font-size: 16px; border-radius: var(--radius-sm); border: none; font-family: 'Heebo', sans-serif; font-weight: 700; cursor: pointer; -webkit-tap-highlight-color: transparent; background: #854F0B; color: #fff; }
+  .btn-confirm.display { background: #185FA5; }
+  .btn-confirm:active { opacity: 0.8; }
+  .btn-confirm:disabled { opacity: 0.5; }
+  .btn-skip { width: 100%; margin-top: 8px; padding: 10px; font-size: 14px; border-radius: var(--radius-sm); border: 0.5px solid rgba(0,0,0,0.15); background: transparent; font-family: 'Heebo', sans-serif; font-weight: 500; color: var(--text-secondary); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
+  .loading-card { width: 100%; max-width: 440px; padding: 2rem; text-align: center; color: var(--text-secondary); font-size: 14px; }
+  .spinner { width: 24px; height: 24px; border: 2px solid rgba(0,0,0,0.12); border-top-color: var(--text-primary); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .footer { margin-top: auto; padding-top: 2rem; font-size: 11px; color: var(--text-hint); text-align: center; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header">
+    <h1>סורק פאות</h1>
+    <p>בדיקת סטטוס ומיקום</p>
+  </div>
+
+  <div class="card">
+    <label class="field-label">מזהה פאה</label>
+    <div class="input-row">
+      <input type="number" id="wigInput" placeholder="הקלידי מספר פאה..." inputmode="numeric" autocomplete="off" />
+      <button class="btn" onclick="lookup()">בדיקה</button>
+    </div>
+    <p class="hint">הקלידי מספר פאה ידנית</p>
+  </div>
+
+  <div id="result"></div>
+  <div class="footer">wigbox · Extra Inventory Management</div>
+</div>
+
+<script>
+const SHEET_ID    = '1GaCqafFxWIAVYZgZ-pKSPX3LmDvgkGnUuZZeqDVk6eo';
+const HELPER_GID  = '1611029800';
+const MASTER_GID  = '1059386396';
+const STORAGE_GID = '450172942';
+const WEBHOOK     = 'https://hook.integrator.boost.space/99xaelrc8ix1v3iu6tg6uw53ndwm7267';
+
+const wigInput  = document.getElementById('wigInput');
+const resultDiv = document.getElementById('result');
+
+wigInput.addEventListener('keydown', e => { if (e.key === 'Enter') lookup(); });
+wigInput.addEventListener('input',   () => { if (resultDiv.innerHTML) resultDiv.innerHTML = ''; });
+
+// Auto-lookup from URL param
+window.addEventListener('load', () => {
+  const params = new URLSearchParams(window.location.search);
+  const id = params.get('id');
+  if (id) {
+    wigInput.value = id.replace(/\D/g, '');
+    lookup();
+  }
+});
+
+async function fetchCSV(gid) {
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}&t=${Date.now()}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('fetch failed');
+  const text = await res.text();
+  return parseCSVAll(text);
+}
+
+function parseCSVAll(text) {
+  const rows = [];
+  const lines = text.trim().split('\n');
+  for (const line of lines) {
+    rows.push(parseCSVRow(line));
+  }
+  return rows;
+}
+
+function parseCSVRow(row) {
+  const result = [];
+  let cur = '', inQ = false;
+  for (let i = 0; i < row.length; i++) {
+    const c = row[i];
+    if (c === '"') { inQ = !inQ; }
+    else if (c === ',' && !inQ) { result.push(cur.trim()); cur = ''; }
+    else { cur += c; }
+  }
+  result.push(cur.trim());
+  return result;
+}
+
+function getMasterStatus(masterStatus) {
+  const s = (masterStatus || '').trim();
+  const soldStatuses    = ['Sold', 'Personal Use', 'Barter'];
+  const returnStatuses  = ['Returned', 'Missing', 'Damaged'];
+  const inStockStatuses = ['In Stock', 'Consignment'];
+
+  if (soldStatuses.includes(s))    return { type: 'sold',    label: 'נמכרה / יצאה מהמלאי' };
+  if (returnStatuses.includes(s))  return { type: 'sold',    label: 'הוחזרה לספק / חסרה' };
+  if (s === 'Inventory Reserved')  return { type: 'order',   label: 'הזמנת לקוחה - בחנות' };
+  if (s === 'Ordered')             return { type: 'order',   label: 'הוזמנה - בדרך' };
+  if (s === 'Order Reserved')      return { type: 'order',   label: 'הזמנת לקוחה - בדרך' };
+  if (s === 'Wish List' || s === 'Fix-Return') return { type: 'order', label: 'בהזמנה' };
+  if (inStockStatuses.includes(s)) return { type: 'instock', label: '' };
+  return { type: 'instock', label: '' }; // default
+}
+
+async function lookup() {
+  const id = wigInput.value.trim();
+  if (!id) { wigInput.focus(); return; }
+  window.history.replaceState({}, document.title, window.location.pathname);
+
+  resultDiv.innerHTML = `<div class="loading-card"><div class="spinner"></div>טוענת נתונים...</div>`;
+
+  try {
+    // Fetch all three sheets in parallel
+    const [masterRows, storageRows, helperRows] = await Promise.all([
+      fetchCSV(MASTER_GID),
+      fetchCSV(STORAGE_GID),
+      fetchCSV(HELPER_GID)
+    ]);
+
+    // 1. Check MASTER_DATA (col C = index 2 is wig id, col D = index 3 is status)
+    const masterMatch = masterRows.slice(1).find(r => r[2] && r[2].trim() === id);
+    let masterStatus = masterMatch ? masterMatch[3] : 'In Stock';
+    const { type: masterType, label: masterLabel } = getMasterStatus(masterStatus);
+
+    if (masterType !== 'instock') {
+      showResult(id, masterType, masterLabel, '', '', null, null);
+      return;
+    }
+
+    // 2. Check STORAGE_DATA (col B = index 1 is wig id, col C = index 2 is status)
+    const storageMatch = storageRows.slice(1).find(r => r[1] && r[1].trim() === id);
+    let currentLocation = 'בתצוגה'; // default
+    let locType = 'none';
+
+    if (storageMatch) {
+      const storageStat = (storageMatch[2] || '').trim();
+      if (storageStat === 'מגירה') { currentLocation = 'באחסון'; locType = 'storage'; }
+      else if (storageStat === 'חפיפה') { currentLocation = 'בחפיפה - לא זמינה למכירה'; locType = 'wash'; }
+    }
+
+    // 3. Check HELPER tab (col A = index 0 is wig id, col D = index 3 is required action)
+    const helperMatch = helperRows.slice(1).find(r => r[0] && r[0].trim() === id);
+
+    if (helperMatch) {
+      const requiredAction = (helperMatch[3] || '').trim();
+      const desc           = (helperMatch[1] || '').trim();
+      const loc            = (helperMatch[2] || '').trim();
+      const isDisplay      = requiredAction.includes('תצוגה');
+      const zohoVal        = isDisplay ? 'פאה בתצוגה' : 'פאה במגירה';
+      showResult(id, 'action', requiredAction, currentLocation, desc, zohoVal, loc);
+    } else {
+      // No action needed — show current location
+      showResult(id, locType === 'wash' ? 'wash' : locType === 'storage' ? 'storage' : 'none', 'אין שינוי נדרש', currentLocation, '', null, null);
+    }
+
+  } catch(e) {
+    resultDiv.innerHTML = `
+      <div class="result-card c-error">
+        <span class="status-badge">שגיאה</span>
+        <div class="result-action">לא ניתן לטעון נתונים</div>
+        <div class="detail-row"><span class="dk">בדקי חיבור לאינטרנט ונסי שוב</span><span class="dv"></span></div>
+      </div>`;
+  }
+}
+
+function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLoc) {
+  const cls = `c-${type}`;
+  const badges = {
+    none: 'תקין · אין שינוי',
+    action: 'נדרשת פעולה',
+    sold: 'יצאה מהמלאי',
+    order: 'בהזמנה',
+    wash: 'בחפיפה',
+    storage: 'באחסון · אין שינוי'
+  };
+  const badge = badges[type] || '';
+  const isDisplay = zohoVal === 'פאה בתצוגה';
+  const confirmCls = isDisplay ? 'display' : '';
+
+  let html = `
+    <div class="result-card ${cls}">
+      <span class="status-badge">${badge}</span>
+      <div class="result-action">${mainText}</div>`;
+
+  if (currentLocation) {
+    html += `<div class="detail-row"><span class="dk">מיקום נוכחי</span><span class="dv">${currentLocation}</span></div>`;
+  }
+  if (desc) {
+    html += `<div class="detail-row"><span class="dk">מאפיינים</span><span class="dv">${desc}</span></div>`;
+  }
+  if (helperLoc) {
+    html += `<div class="detail-row"><span class="dk">מיקום / ארגז</span><span class="dv">${helperLoc}</span></div>`;
+  }
+  html += `<div class="detail-row"><span class="dk">מזהה פאה</span><span class="dv">${id}</span></div>`;
+
+  if (zohoVal) {
+    html += `
+      <button class="btn-confirm ${confirmCls}" id="confirmBtn" onclick="confirmAction('${id}','${zohoVal}','${mainText}','${encodeURIComponent(desc)}','${encodeURIComponent(helperLoc || '')}')">✓ אישור — ביצעתי את הפעולה</button>
+      <button class="btn-skip" onclick="reset()">השאירי כמו שזה</button>`;
+  } else if (type === 'none' || type === 'storage' || type === 'wash') {
+    setTimeout(reset, 4000);
+  }
+
+  html += `</div>`;
+  resultDiv.innerHTML = html;
+}
+
+async function confirmAction(wigId, zohoValue, action, descEnc, locEnc) {
+  const btn  = document.getElementById('confirmBtn');
+  const desc = decodeURIComponent(descEnc);
+  const loc  = decodeURIComponent(locEnc);
+  btn.disabled = true;
+  btn.textContent = 'שולחת...';
+  try {
+    await fetch(WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ wig_id: wigId, action, zoho_status: zohoValue, description: desc, location: loc, timestamp: new Date().toISOString() })
+    });
+    resultDiv.innerHTML = `
+      <div class="result-card c-success" style="text-align:center;">
+        <span class="status-badge">נשלח</span>
+        <div class="result-action" style="font-size:20px;">✓ הפעולה נרשמה בהצלחה</div>
+        <div class="detail-row"><span class="dk">מזהה פאה</span><span class="dv">${wigId}</span></div>
+      </div>`;
+    setTimeout(reset, 2000);
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '✓ אישור — ביצעתי את הפעולה';
+    alert('שגיאה בשליחה — בדקי חיבור ונסי שוב');
+  }
+}
+
+function reset() {
+  resultDiv.innerHTML = '';
+  wigInput.value = '';
+  wigInput.focus();
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+</script>
+</body>
+</html>
