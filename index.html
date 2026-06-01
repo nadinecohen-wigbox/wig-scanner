@@ -213,7 +213,7 @@ async function lookup() {
     if (storageMatch) {
       const storageStat = (storageMatch[2] || '').trim();
       if (storageStat === 'מגירה') { currentLocation = 'באחסון'; locType = 'storage'; }
-      else if (storageStat === 'חפיפה') { currentLocation = 'בחפיפה - לא זמינה למכירה'; locType = 'wash'; }
+      else if (storageStat === 'חפיפה') { currentLocation = 'בחפיפה'; locType = 'wash'; }
     }
 
     // 3. Check HELPER tab (col A = index 0 is wig id, col D = index 3 is required action)
@@ -249,6 +249,7 @@ function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLo
     sold: 'יצאה מהמלאי',
     order: 'בהזמנה',
     wash: 'בחפיפה',
+
     storage: 'באחסון · אין שינוי'
   };
   const badge = badges[type] || '';
@@ -275,8 +276,8 @@ function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLo
     html += `
       <button class="btn-confirm ${confirmCls}" id="confirmBtn" onclick="confirmAction('${id}','${zohoVal}','${mainText}','${encodeURIComponent(desc)}','${encodeURIComponent(helperLoc || '')}')">✓ אישור — ביצעתי את הפעולה</button>
       <button class="btn-skip" onclick="reset()">השאירי כמו שזה</button>`;
-  } else if (type === 'none' || type === 'storage' || type === 'wash') {
-    setTimeout(reset, 4000);
+  } else {
+    html += `<button class="btn-skip" onclick="reset()" style="margin-top:14px;">← סריקה הבאה</button>`;
   }
 
   html += `</div>`;
