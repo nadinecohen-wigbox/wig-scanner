@@ -228,10 +228,11 @@ async function lookup() {
       const loc            = (helperMatch[2] || '').trim();
       const isDisplay      = requiredAction.includes('תצוגה');
       const zohoVal        = isDisplay ? 'פאה בתצוגה' : 'פאה במגירה';
-      showResult(id, 'action', requiredAction, currentLocation, desc, zohoVal, loc);
+      showResult(id, 'action', requiredAction, currentLocation, desc, zohoVal, loc, false, currentLocation);
     } else {
       // No action needed — show current location
-      showResult(id, locType === 'wash' ? 'wash' : locType === 'storage' ? 'storage' : 'none', 'אין שינוי נדרש', currentLocation, '', null, null);
+      const noActionText = locType === 'wash' ? 'בחפיפה' : 'אין שינוי נדרש';
+      showResult(id, locType === 'wash' ? 'wash' : locType === 'storage' ? 'storage' : 'none', noActionText, currentLocation, '', null, null);
     }
 
   } catch(e) {
@@ -244,7 +245,8 @@ async function lookup() {
   }
 }
 
-function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLoc, soldAndWash) {
+function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLoc, soldAndWash, webhookCurrentLoc) {
+  webhookCurrentLoc = webhookCurrentLoc || currentLocation || '';
   const cls = `c-${type}`;
   const badges = {
     none: 'תקין · אין שינוי',
@@ -277,16 +279,16 @@ function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLo
 
   if (soldAndWash) {
     html += `
-      <button class="btn-confirm display" id="confirmBtn" onclick="confirmAction('${id}','פאה בתצוגה','מחיקת סטטוס חפיפה','${encodeURIComponent(desc)}','')">מחקי סטטוס חפיפה</button>
+      <button class="btn-confirm display" id="confirmBtn" onclick="confirmAction('${id}','פאה בתצוגה','מחיקת סטטוס חפיפה','${encodeURIComponent(desc)}','','${webhookCurrentLoc}')">מחקי סטטוס חפיפה</button>
       <button class="btn-skip" onclick="reset()">השאירי כמו שזה</button>`;
   } else if (type === 'wash') {
     html += `
-      <button class="btn-confirm display" id="confirmBtn" onclick="confirmAction('${id}','פאה בתצוגה','העברה לתצוגה','${encodeURIComponent(desc)}','')">✓ העברי לתצוגה</button>
-      <button class="btn-confirm" style="margin-top:8px;" onclick="confirmAction('${id}','פאה במגירה','העברה לאחסון','${encodeURIComponent(desc)}','')">✓ העברי לאחסון</button>
+      <button class="btn-confirm display" id="confirmBtn" onclick="confirmAction('${id}','פאה בתצוגה','העברה לתצוגה','${encodeURIComponent(desc)}','','${webhookCurrentLoc}')">✓ העברי לתצוגה</button>
+      <button class="btn-confirm" style="margin-top:8px;" onclick="confirmAction('${id}','פאה במגירה','העברה לאחסון','${encodeURIComponent(desc)}','','${webhookCurrentLoc}')">✓ העברי לאחסון</button>
       <button class="btn-skip" onclick="reset()">השאירי כמו שזה</button>`;
   } else if (zohoVal) {
     html += `
-      <button class="btn-confirm ${confirmCls}" id="confirmBtn" onclick="confirmAction('${id}','${zohoVal}','${mainText}','${encodeURIComponent(desc)}','${encodeURIComponent(helperLoc || '')}')">✓ אישור — ביצעתי את הפעולה</button>
+      <button class="btn-confirm ${confirmCls}" id="confirmBtn" onclick="confirmAction('${id}','${zohoVal}','${mainText}','${encodeURIComponent(desc)}','${encodeURIComponent(helperLoc || '')}','${webhookCurrentLoc}')">✓ אישור — ביצעתי את הפעולה</button>
       <button class="btn-skip" onclick="reset()">השאירי כמו שזה</button>`;
   } else {
     html += `<button class="btn-skip" onclick="reset()" style="margin-top:14px;">← סריקה הבאה</button>`;
@@ -296,7 +298,7 @@ function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLo
   resultDiv.innerHTML = html;
 }
 
-async function confirmAction(wigId, zohoValue, action, descEnc, locEnc) {
+async function confirmAction(wigId, zohoValue, action, descEnc, locEnc, currentLoc) {
   const btn  = document.getElementById('confirmBtn');
   const desc = decodeURIComponent(descEnc);
   const loc  = decodeURIComponent(locEnc);
@@ -306,7 +308,7 @@ async function confirmAction(wigId, zohoValue, action, descEnc, locEnc) {
     await fetch(WEBHOOK, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ wig_id: wigId, action, zoho_status: zohoValue, description: desc, location: loc, timestamp: new Date().toISOString() })
+      body: JSON.stringify({ wig_id: wigId, action, zoho_status: zohoValue, description: desc, location: loc, current_location: currentLoc || '', timestamp: new Date().toISOString() })
     });
     resultDiv.innerHTML = `
       <div class="result-card c-success" style="text-align:center;">
