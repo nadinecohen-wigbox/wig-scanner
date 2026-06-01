@@ -278,6 +278,10 @@ function showResult(id, type, mainText, currentLocation, desc, zohoVal, helperLo
   html += `<div class="detail-row"><span class="dk">מזהה פאה</span><span class="dv">${id}</span></div>`;
 
   if (soldAndWash) {
+    // Override badge to show both statuses
+    const soldAndWashBadgeEl = html.indexOf('status-badge');
+    html = html.replace(`<span class="status-badge">${badge}</span>`, `<span class="status-badge">${badge} · בחפיפה</span>`);
+    html += `<div class="detail-row"><span class="dk">מיקום נוכחי</span><span class="dv">בחפיפה</span></div>`;
     html += `
       <button class="btn-confirm display" id="confirmBtn" onclick="confirmAction('${id}','פאה בתצוגה','מחיקת סטטוס חפיפה','${encodeURIComponent(desc)}','','${webhookCurrentLoc}')">מחקי סטטוס חפיפה</button>
       <button class="btn-skip" onclick="reset()">השאירי כמו שזה</button>`;
