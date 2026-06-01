@@ -197,7 +197,17 @@ async function lookup() {
 
     // 1. Check MASTER_DATA (col C = index 2 is wig id, col D = index 3 is status)
     const masterMatch = masterRows.slice(1).find(r => r[2] && r[2].trim() === id);
-    let masterStatus = masterMatch ? masterMatch[3] : 'In Stock';
+    if (!masterMatch) {
+      resultDiv.innerHTML = `
+        <div class="result-card c-error">
+          <span class="status-badge">לא נמצאה</span>
+          <div class="result-action">פאה לא נמצאת במערכת</div>
+          <div class="detail-row"><span class="dk">מזהה פאה</span><span class="dv">${id}</span></div>
+          <button class="btn-skip" onclick="reset()" style="margin-top:14px;">← סריקה הבאה</button>
+        </div>`;
+      return;
+    }
+    let masterStatus = masterMatch[3];
     const { type: masterType, label: masterLabel } = getMasterStatus(masterStatus);
 
     if (masterType !== 'instock') {
